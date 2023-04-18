@@ -5,9 +5,9 @@ import basket from '../../images/basket.png';
 import edit from '../../images/edit.png';
 
 export const Contact = (props) => {
-  const { item } = props;
+  const { item, elementActive } = props;
   return (
-    <li className='contact'>
+    <li className={`contact ${item === elementActive && 'contact_active'}`}>
       <div className='contacts__item-square contact__item'></div>
       <p className='contact__item contact__cell-id'>{item.id}</p>
       <p className='contact__item contact__item-text contact__cell-name'>

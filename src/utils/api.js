@@ -1,111 +1,32 @@
-class Api {
-  constructor(settings) {
-    this._settings = settings;
-  }
+import axios from 'axios';
+import { contacts, user } from '../constants/constants';
 
-  // Проверка полученного ответа -------------------------
-  _checkResponse(res) {
-    if (res.ok) {
-      return res.json();
-    } else {
-      return Promise.reject(`Ошибка: ${res.status}`);
+// Перехватчик  =================
+
+// Создаем экземпляр ===============
+export const $api = axios.create({
+  baseURL: 'http://localhost:3000',
+});
+
+$api.interceptors.response.use(
+  (config) => {
+    return config;
+  },
+  (error) => {
+    const url = error.config.url;
+
+    // Запрос по массиву контактов --------
+    if (url === '/contacts') {
+      return $api.request({ contacts: contacts });
+    }
+
+    // Запрос на авторизацию --------
+    const userAuth = JSON.stringify(user);
+
+    if (url === '/signin' && error.config.data === userAuth) {
+      const authData = { user: user, token: 'token' };
+
+      return $api.request({ authData: authData });
     }
   }
-
-  getUserInfo() {
-    return fetch(`${this._settings.baseUrl}/users/me`, {
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-      },
-    }).then(this._checkResponse);
-  }
-
-  getInitialCards() {
-    return fetch(`${this._settings.baseUrl}/cards`, {
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-      },
-    }).then(this._checkResponse);
-  }
-
-  addCard(formValues) {
-    return fetch(`${this._settings.baseUrl}/cards`, {
-      method: 'POST',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formValues.name,
-        link: formValues.link,
-      }),
-    }).then(this._checkResponse);
-  }
-
-  deleteCard(obj) {
-    return fetch(`${this._settings.baseUrl}/cards/${obj._id}`, {
-      method: 'DELETE',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-      },
-    }).then(this._checkResponse);
-  }
-
-  sendInfoProfile(formValues) {
-    return fetch(`${this._settings.baseUrl}/users/me`, {
-      method: 'PATCH',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formValues.name,
-        about: formValues.about,
-      }),
-    }).then(this._checkResponse);
-  }
-
-  addAvatar(formValues) {
-    return fetch(`${this._settings.baseUrl}/users/me/avatar`, {
-      method: 'PATCH',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        avatar: formValues.avatar,
-      }),
-    }).then(this._checkResponse);
-  }
-
-  addLikes(obj) {
-    return fetch(`${this._settings.baseUrl}/cards/${obj._id}/likes`, {
-      method: 'PUT',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        likes: obj.likes,
-      }),
-    }).then(this._checkResponse);
-  }
-
-  deleteLike(obj) {
-    return fetch(`${this._settings.baseUrl}/cards/${obj._id}/likes`, {
-      method: 'DELETE',
-      headers: {
-        authorization: `${this._settings.headers.authorization}`,
-      },
-    }).then(this._checkResponse);
-  }
-}
-
-//
-export const api = new Api({
-  baseUrl: 'https://mesto.nomoreparties.co/v1/cohort-39',
-  headers: {
-    authorization: 'fcbbb83d-e200-4418-b5ab-2457f84f25b4',
-    'Content-Type': 'application/json',
-  },
-});
+);

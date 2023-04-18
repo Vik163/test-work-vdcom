@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import './List.css';
 import './List-contacts.css';
@@ -12,85 +12,74 @@ import logoutIcon from '../../images/logout.svg';
 import contactsIcon from '../../images/contacts.svg';
 import calendar from '../../images/calendar.svg';
 import report from '../../images/report.svg';
-import { styled, alpha } from '@mui/material/styles';
+
+// Использовал библиотеку компонентов, раньше с ней не сталкивался, поэтому так все неухожено. Решил так сэкономить на верстке сложных элементов
 import SearchIcon from '@mui/icons-material/Search';
-import InputBase from '@mui/material/InputBase';
-import { contacts } from '../../constants/constants';
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(2),
-    width: 'auto',
-  },
-}));
+import { Search, SearchIconWrapper, StyledInputBase } from './ui';
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    // transition: theme.transitions.create('width'),
-    width: '522px',
-    height: '30px',
-    backgroundColor: alpha(theme.palette.common.black, 0.08),
-    // [theme.breakpoints.up('sm')]: {
-    //   width: '12ch',
-    //   '&:focus': {
-    //     width: '20ch',
-    //   },
-    // },
-  },
-}));
-
-function List() {
-  const [isError, setIsError] = useState(false);
+function List(props) {
+  const { contacts, signOut } = props;
   const [value, setValue] = useState('');
-  const [isToggle, setIsToggle] = useState(false);
+  const [index, setIndex] = useState(0); // индекс подмассива контактов
+  const [indexSearchElement, setIndexSearchElement] = useState(null); // индекс подмассива контактов
 
-  // Значение инпута поиска ----------------------
-  const handleChange = (e) => {
-    setValue(e.target.value);
-    setIsError(e.target.validationMessage);
+  // Разбиваем массив контактов на подмассивы с установленным лимитом, и отображаем нужный подмассив ==
+  function createArrContacts(contacts, size) {
+    const arr = [];
+    for (let i = 0; i < contacts.length; i += size) {
+      const page = contacts.slice(i, i + size);
+      arr.push(page);
+    }
+    return arr;
+  }
+  const arrContacts = createArrContacts(contacts, 9);
+
+  const handlePage = (e) => {
+    const target = e.target;
+    setIndex(target.textContent - 1);
   };
+  //==============================================================================
 
+  // Значение  поиска =========================================
+  const searchName = (e) => {
+    setValue(e.target.value); // Получаю значение инпута
+  };
+  /* Нахожу по нему либо сам элемент, либо его индекс в массиве, а дальше необходимые действия. Пока выделяю найденный элемент. Захаркоженное имя    'Example' */
   const handleSubmit = (e) => {
     e.preventDefault();
+    for (let i = 0; i < arrContacts.length; i++) {
+      arrContacts[i].find(
+        (item, index) =>
+          item.name.includes(value) &&
+          setIndexSearchElement(arrContacts[i][index])
+      );
+      setIndex(i);
+    }
   };
 
-  const toggle = () => {
-    setIsToggle(!isToggle);
-  };
   return (
     <div className='list'>
       <img className='list__logo' src={logo} alt='Логотип' />
 
       <div className='list__header'>
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder='Search by Name...'
-            inputProps={{ 'aria-label': 'search' }}
-          />
-        </Search>
+        <form className='list__form' onSubmit={handleSubmit}>
+          <Search>
+            <SearchIconWrapper onClick={searchName}>
+              <SearchIcon onClick={searchName} />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder='Search by Name...'
+              inputProps={{ 'aria-label': 'search' }}
+              onChange={searchName}
+            />
+          </Search>
+        </form>
+
         <img className='user' src={userProfileImage} alt='Пользователь' />
       </div>
 
+      {/* Выделение ссылки навигации можно реализовать с помощью path из useLocation */}
       <div className='list__navigation-container'>
         <ul className='list__links'>
           <li className='list__links-item list__links-item_active'>
@@ -116,12 +105,13 @@ function List() {
             </a>
           </li>
         </ul>
-        <button className='list__logout'>
+        <button className='list__logout' onClick={signOut}>
           <img className='list__logout-icon' src={logoutIcon} alt='иконка' />
           log out
         </button>
       </div>
 
+      {/* Добавление контакта: по клику появляется попап с валидацией полей, заполняются данные и отправляется 'post' запрос, после подтверждения добавляется в массив. Также устроено редактирование полей элемента массива, только запрос 'put'. Удаляем из массива методом filter() по id после подтверждения запроса 'remove'  */}
       <div className='contacts'>
         <div className='contacts__header'>
           <h2 className='contacts__title'>Total Contacts</h2>
@@ -192,26 +182,33 @@ function List() {
           </ul>
           <ul className='contacts__item'>
             {contacts &&
-              contacts.map((item, i) => <Contact item={item} key={i} />)}
+              arrContacts[index].map((item, i) => (
+                <Contact
+                  item={item}
+                  key={i}
+                  index={i}
+                  elementActive={indexSearchElement}
+                />
+              ))}
           </ul>
         </div>
 
         <ul className='contacts__pages'>
+          {/* По индексу устанавил активную страницу. Со стрелками не связывался */}
           <li className='contacts__pages-item'>❮</li>
-          <li className='contacts__pages-item'>
-            <span className='contacts__pages-link contacts__pages-link-active'>
-              1
-            </span>
-          </li>
-          <li className='contacts__pages-item'>
-            <span className='contacts__pages-link'>2</span>
-          </li>
-          <li className='contacts__pages-item'>
-            <span className='contacts__pages-link'>3</span>
-          </li>
-          <li className='contacts__pages-item'>
-            <span className='contacts__pages-link'>4</span>
-          </li>
+          {contacts &&
+            arrContacts.map((item, i) => (
+              <li
+                className={`contacts__pages-link ${
+                  index === i && 'contacts__pages-link-active'
+                }`}
+                key={i}
+                onClick={handlePage}
+              >
+                {i + 1}
+              </li>
+            ))}
+
           <li className='contacts__pages-item'>❯</li>
         </ul>
       </div>

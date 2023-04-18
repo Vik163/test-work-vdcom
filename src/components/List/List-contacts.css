@@ -130,8 +130,6 @@
 .contact__cell-address {
   min-width: 145px;
 }
-.contact__cell-action {
-}
 
 .contacts__pages {
   display: flex;
@@ -153,6 +151,7 @@
 .contacts__pages-link {
   line-height: 20px;
   cursor: pointer;
+  margin-right: 13px;
 }
 
 .contacts__pages-link-active {

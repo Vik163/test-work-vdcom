@@ -5,140 +5,66 @@ import Login from '../Login/Login';
 import List from '../List/List';
 
 import { CurrentUserContext } from '../../contexts/CurrentUserContext';
-import { auth } from '../../utils/auth';
+import { mainApi } from '../../utils/mainApi';
 
 function App() {
   const [currentUser, setCurrentUser] = useState({});
   const navigate = useNavigate();
-  const [logInfo, setLogInfo] = useState({
-    id: '',
-    email: '',
-  });
 
-  const [loggedIn, setLoggedIn] = useState(true);
-  const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
-  const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
-  const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
-  const [valueSubmit, setValueSubmit] = useState('Сохранить');
-  const [valueSubmitDeleteCard, setValueSubmitDeleteCard] = useState('Да');
-  const [selectedCard, setSelectedCard] = useState({});
-  const [cardDelete, setCardDelete] = useState({});
-  const [cards, setCards] = useState([]);
+  const loggedIn = localStorage.getItem('user');
+  const [formReset, setFormReset] = useState(false);
+  const [contacts, setContacts] = useState(null);
 
-  // Проверка авторизации ----------------------
-  const checkToken = () => {
-    const jwt = localStorage.getItem('jwt');
-
-    if (jwt) {
-      auth
-        .checkToken(jwt)
-        .then((res) => {
-          if (res) {
-            setLogInfo({
-              id: res.data._id,
-              email: res.data.email,
-            });
-            setLoggedIn(true);
-          }
-        })
-        .catch((err) => console.log(err));
-    }
-  };
-
-  // Проверка авторизации при загрузке страницы
-  // useEffect(() => {
-  //   checkToken();
-  // }, []);
-
-  // Перенаправление авторизованного пользователя
+  // Перенаправление авторизованного пользователя ===
   useEffect(() => {
-    if (loggedIn) {
-      navigate('/list');
-    }
+    loggedIn ? navigate('/list') : navigate('/signin');
   }, [loggedIn]);
 
-  // useEffect(() => {
-  //   Promise.all([api.getUserInfo(), api.getInitialCards()])
-  //     .then(([userData, cards]) => {
-  //       setCurrentUser(userData);
-  //       setCards(cards);
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     });
-  // }, []);
+  // Получение контактов авторизованным пользователем ===
+  useEffect(() => {
+    loggedIn &&
+      mainApi.getContacts().then((contactsData) => {
+        setContacts(contactsData);
+      });
+  }, [loggedIn]);
 
-  // Вход пользователя -----------------------------
-  function handleLogin({ password, email }) {
-    return auth
-      .authorization(password, email)
-      .then((data) => {
-        if (data.token) {
-          localStorage.setItem('jwt', data.token);
-          checkToken();
+  // Вход пользователя по password: '1234', login: 'email@ya.ru',=========
+  function handleLogin({ password, login }) {
+    return mainApi.authorization(password, login).then((data) => {
+      if (data) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', data.user.login);
+        setCurrentUser(data.user);
+        setFormReset(true);
 
-          navigate.push('/');
-        }
-      })
-      .catch((err) => console.log(err));
-  }
-
-  // Выход пользователя -------------------
-  function signOut() {
-    localStorage.removeItem('jwt');
-    setLoggedIn(false);
-    setLogInfo({
-      id: null,
-      email: null,
+        navigate.push('/list');
+      }
     });
-    navigate.push('/sign-in');
   }
 
-  // // Удаление карты -----------------------------
-  // function handleCardDelete(e) {
-  //   e.preventDefault();
+  // Выход пользователя =======================
+  // Не стал делать запрос
+  function signOut() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
 
-  //   setValueSubmitDeleteCard('Сохранение...');
-  //   api
-  //     .deleteCard(cardDelete)
-  //     .then(() => {
-  //       // Удаление выбранной карты ------------------------------------------
-  //       setCards((state) => state.filter((c) => !(c._id === cardDelete._id)));
-  //       // -------------------------------------------------------------------
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     })
-  //     .finally(() => {
-  //       setValueSubmitDeleteCard('Да');
-  //     });
-  // }
-
-  // Обновление данных пользователя ----------
-  // function handleUpdateUser(obj) {
-  //   setValueSubmit('Сохранение...');
-
-  //   api
-  //     .sendInfoProfile(obj)
-  //     .then((result) => {
-  //       setCurrentUser(result);
-  //     })
-  //     .catch((err) => {
-  //       console.log(err);
-  //     })
-  //     .finally(() => {
-  //       setValueSubmit('Сохранить');
-  //     });
-  // }
-
-  // Переключение лайков ------------------------------------------
+    navigate('/signin');
+  }
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className='page'>
         <Routes>
-          <Route path='/login' element={<Login handleLogin={handleLogin} />} />
-          <Route path='/list' element={<List />} />
+          <Route
+            path='/signin'
+            element={<Login handleLogin={handleLogin} formReset={formReset} />}
+          />
+          {contacts && (
+            <Route
+              path='/list'
+              element={<List contacts={contacts} signOut={signOut} />}
+            />
+          )}
         </Routes>
       </div>
     </CurrentUserContext.Provider>

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
 
 import './Login.css';
 
@@ -10,52 +9,23 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 function Login(props) {
   const { handleLogin, formReset } = props;
 
-  const [isName, setIsName] = useState('');
   const [values, setValues] = React.useState(false);
-  const [errors, setErrors] = React.useState({
-    password: '',
-  });
-  const [inputEventTarget, setInputEventTarget] = React.useState({});
-  const [emailValid, setEmailValid] = React.useState(false);
-  const [passwordValid, setPasswordValid] = React.useState(false);
+
   const [showPassword, setShowPassword] = React.useState(false);
 
-  //Ввод данных и валидация
+  // Ввод данных =======================
+  // Создаю объект с вводимыми данными --
   const handleChange = (event) => {
-    setInputEventTarget(event.target);
     const target = event.target;
     const value = target.value;
     const name = target.name;
-    setIsName(name);
     setValues({ ...values, [name]: value });
   };
 
-  // Валидация email и password ----------------------------------------------
-  useEffect(() => {
-    if (values.email) {
-      if (values.email.match(/^[\w]{1}[\w-.]*@[\w-]+\.[a-z]{2,4}$/i) === null) {
-        setEmailValid({
-          valid: false,
-          message: 'Некорректный адрес электронной почты ',
-        });
-      } else {
-        setEmailValid({ valid: true });
-      }
-    }
-    if (inputEventTarget.name === 'password') {
-      setPasswordValid(inputEventTarget.closest('input').checkValidity());
-      setErrors({
-        ...errors,
-        [inputEventTarget.name]: inputEventTarget.validationMessage,
-      });
-    }
-  }, [values]);
-
-  // Сброс -------------------------------
+  // Сброс данных после успешной отправки =======
   useEffect(() => {
     if (formReset) {
       setValues({ email: '', password: '' });
-      setErrors({});
     }
   }, [formReset]);
 
@@ -64,6 +34,7 @@ function Login(props) {
     handleLogin(values);
   };
 
+  // Иконка пароля ==================
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };

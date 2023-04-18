@@ -1,3 +1,8 @@
+export const user = {
+  password: '1234',
+  login: 'email@ya.ru',
+};
+
 export const contacts = [
   {
     id: 123456,
@@ -199,7 +204,7 @@ export const contacts = [
   },
   {
     id: 123456,
-    name: 'Entity name',
+    name: 'Example',
     trn: 654321,
     year: '23/06/22',
     ard: '23/06/22',

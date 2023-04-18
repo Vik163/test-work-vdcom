@@ -1,15 +1,17 @@
 .list {
-  width: 100vw;
-  height: 100vh;
+  width: 1440px;
+  height: 900px;
   display: grid;
   grid-template-columns: 226px 1fr;
   grid-template-rows: 96px 1fr;
+  margin: auto;
 }
 
 .list__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 90px;
 }
 
 .list__logo {
@@ -18,7 +20,7 @@
   margin: 0 auto;
 }
 
-.list_navigation-container {
+.list__navigation-container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;

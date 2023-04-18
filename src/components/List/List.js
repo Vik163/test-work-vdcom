@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 
 import './List.css';
-import './ListContacts.css';
+import './List-contacts.css';
+
+import { Contact } from '../Contact/Contact';
 
 import logo from '../../images/LOGO.png';
 import userProfileImage from '../../images/user.png';
 import arrows from '../../images/arrows.png';
 import logoutIcon from '../../images/logout.svg';
-import contacts from '../../images/contacts.svg';
+import contactsIcon from '../../images/contacts.svg';
 import calendar from '../../images/calendar.svg';
 import report from '../../images/report.svg';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import InputBase from '@mui/material/InputBase';
+import { contacts } from '../../constants/constants';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -75,7 +78,7 @@ function List() {
     <div className='list'>
       <img className='list__logo' src={logo} alt='Логотип' />
 
-      <div className='list__table'>
+      <div className='list__header'>
         <Search>
           <SearchIconWrapper>
             <SearchIcon />
@@ -85,14 +88,18 @@ function List() {
             inputProps={{ 'aria-label': 'search' }}
           />
         </Search>
-        <img className='list__user' src={userProfileImage} alt='Пользователь' />
+        <img className='user' src={userProfileImage} alt='Пользователь' />
       </div>
 
-      <div className='list_navigation-container'>
+      <div className='list__navigation-container'>
         <ul className='list__links'>
           <li className='list__links-item list__links-item_active'>
             <a href='#' className='list__link'>
-              <img className='list__link-icon' src={contacts} alt='иконка' />{' '}
+              <img
+                className='list__link-icon'
+                src={contactsIcon}
+                alt='иконка'
+              />{' '}
               Total Contacts
             </a>
           </li>
@@ -114,88 +121,98 @@ function List() {
           log out
         </button>
       </div>
-      <div className='list__contacts'>
-        <div className='list__contacts-header'>
-          <h2 className='list__contacts-title'>Total Contacts</h2>
-          <button className='list__add'>Add +</button>
+
+      <div className='contacts'>
+        <div className='contacts__header'>
+          <h2 className='contacts__title'>Total Contacts</h2>
+          <button className='add'>Add +</button>
         </div>
-        <div className='list__contacts-container'>
-          <ul className='list__contacts-table'>
-            <li className='list__contacts-table-item'>
-              <span className='list__contacts-item-square'></span> Client ID
+        <div className='contacts__container'>
+          {/* Здесь можно разложить данные с помощью массива, но я не стал заморачиваться  */}
+          <ul className='contacts__cap'>
+            <li className='contacts__item-square'></li>
+            <li className='contacts__cap-item  contact__cell-id'>
+              <p className='contact__item-text'> Client ID</p>
               <img
                 src={arrows}
-                className='list__contacts-table-arrows'
+                className='contacts__cap-arrows'
                 alt='стрелки'
               />
             </li>
-            <li className='list__contacts-table-item'>
-              Client Name{' '}
+            <li className='contacts__cap-item contact__cell-name'>
+              <p className='contact__item-text'>Client Name</p>
               <img
                 src={arrows}
-                className='list__contacts-table-arrows'
+                className='contacts__cap-arrows'
                 alt='стрелки'
               />
             </li>
-            <li className='list__contacts-table-item'>
-              TRN/PPSN{' '}
+            <li className='contacts__cap-item contact__cell-trn'>
+              <p className='contact__item-text'>TRN/PPSN</p>
               <img
                 src={arrows}
-                className='list__contacts-table-arrows'
+                className='contacts__cap-arrows'
                 alt='стрелки'
               />
             </li>
-            <li className='list__contacts-table-item'>
-              Year end{' '}
+            <li className='contacts__cap-item contact__cell-year'>
+              <p className='contact__item-text'>Year end</p>
               <img
                 src={arrows}
-                className='list__contacts-table-arrows'
+                className='contacts__cap-arrows'
                 alt='стрелки'
               />
             </li>
-            <li className='list__contacts-table-item'>
-              ARD{' '}
+            <li className='contacts__cap-item contact__cell-ard'>
+              <p className='contact__item-text'>ARD</p>
               <img
                 src={arrows}
-                className='list__contacts-table-arrows'
-                alt='стрелки'
-              />
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            </li>
-            <li className='list__contacts-table-item'>
-              Company nu...{' '}
-              <img
-                src={arrows}
-                className='list__contacts-table-arrows'
+                className='contacts__cap-arrows'
                 alt='стрелки'
               />
             </li>
-            <li className='list__contacts-table-item'>
-              Email
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <li className='contacts__cap-item contact__cell-number'>
+              <p className='contact__item-text'>Company number</p>
+              <img
+                src={arrows}
+                className='contacts__cap-arrows'
+                alt='стрелки'
+              />
             </li>
-            <li className='list__contacts-table-item'>Phone number</li>
-            <li className='list__contacts-table-item'>Company address</li>
-            <li className='list__contacts-table-item'>Action</li>
+            <li className='contacts__cap-item contact__cell-email'>
+              <p className='contact__item-text'>Email</p>
+            </li>
+            <li className='contacts__cap-item contact__cell-phone'>
+              <p className='contact__item-text'>Phone number</p>
+            </li>
+            <li className='contacts__cap-item contact__cell-address'>
+              <p className='contact__item-text'>Company address</p>
+            </li>
+            <li className='contacts__cap-item contact__cell-action'>Action</li>
+          </ul>
+          <ul className='contacts__item'>
+            {contacts &&
+              contacts.map((item, i) => <Contact item={item} key={i} />)}
           </ul>
         </div>
-        <ul className='list__contacts-pages'>
-          <li className='list__contacts-pages-item'>❮</li>
-          <li className='list__contacts-pages-item'>
-            <span className='list__contacts-pages-link list__contacts-pages-link-active'>
+
+        <ul className='contacts__pages'>
+          <li className='contacts__pages-item'>❮</li>
+          <li className='contacts__pages-item'>
+            <span className='contacts__pages-link contacts__pages-link-active'>
               1
             </span>
           </li>
-          <li className='list__contacts-pages-item'>
-            <span className='list__contacts-pages-link'>2</span>
+          <li className='contacts__pages-item'>
+            <span className='contacts__pages-link'>2</span>
           </li>
-          <li className='list__contacts-pages-item'>
-            <span className='list__contacts-pages-link'>3</span>
+          <li className='contacts__pages-item'>
+            <span className='contacts__pages-link'>3</span>
           </li>
-          <li className='list__contacts-pages-item'>
-            <span className='list__contacts-pages-link'>4</span>
+          <li className='contacts__pages-item'>
+            <span className='contacts__pages-link'>4</span>
           </li>
-          <li className='list__contacts-pages-item'>❯</li>
+          <li className='contacts__pages-item'>❯</li>
         </ul>
       </div>
     </div>
